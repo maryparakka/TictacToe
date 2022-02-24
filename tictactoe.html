@@ -1,0 +1,307 @@
+<html>
+
+<head>
+    <title>Tic-Tac-Toe</title>
+    <style>
+        .align-center {
+            align-self: center;
+        }
+
+        .header-block {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .winner-block {
+            display: flex;
+            flex-direction: column;
+            padding:1%;
+        }
+
+        .container-block {
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .contents {
+            padding-left: 40%;
+            position: relative;
+            margin-top: 10%;
+            font-size: 40px;
+        }
+
+        .tictactoeblock {
+            position: relative;
+            float: left;
+            padding: 2%;
+            width:10%;
+            height:10%;
+            justify-content: center;
+            align-items: center;
+            display: flex;
+        }
+
+        .tictactoeclear {
+            clear: both;
+        }
+
+        .tictactoeborderright {
+            border-right: black 1px solid;
+        }
+
+        .tictactoebordertop {
+            border-top: black 1px solid;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .newgamebtn {
+            background-color: cornflowerblue;
+            padding: 1%;
+            border-radius: 10px;
+            color: wheat;
+            font-size: 20px;
+            margin-top: 1%;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="container" class="container-block">
+        <div id="header" class="header-block">
+            <h1 class="align-center">Tic-Tac-Toe</h1>
+            <div id="startSymbol" class="align-center">
+                Starting Player: X
+            </div>
+        </div>
+        <div id="winblock" class="hidden winner-block">
+            <div id="winner" class="align-center"></div>
+            <div id="newgame" class="align-center newgamebtn">Start new game</div>
+        </div>
+        
+        <div id="contents" class="contents"></div>
+    </div>
+
+    <script> 
+        document.addEventListener("DOMContentLoaded", () => {
+            let clickCounter = 0;
+            let counter = 2;
+            let symbol = "X";
+            let isWinner = false;
+
+            // Collection of id & values of div clicked
+            let tictactoeObj = [{ "id": 0, "value": "" }, { "id": 1, "value": "" }, 
+            { "id": 2, "value": "" }, { "id": 3, "value": "" }, { "id": 4, "value": "" }, 
+            { "id": 5, "value": "" }, { "id": 6, "value": "" }, { "id": 7, "value": "" }, 
+            { "id": 8, "value": "" }];  
+
+            // Creating the tic tac toe divs and the grid
+            for (let index = 0; index < 9; index++) 
+            {
+                let block = document.createElement("div");
+                if (index !== counter) 
+                {
+                    if (index < 3) 
+                    {
+                        block.classList.add("tictactoeborderright");  
+                    }                  
+                    else 
+                    {
+                        block.classList.add("tictactoeborderright", "tictactoebordertop");   
+                    }                     
+                }
+                else 
+                {
+                    if (counter > 2) 
+                    {
+                        block.classList.add("tictactoebordertop");
+                    }
+                    counter += 3;
+                }
+
+                if (index % 3 === 0 && index !== 0) 
+                {
+                    block.classList.add("tictactoeblock", "tictactoeclear");
+                }
+                else 
+                {
+                    block.classList.add("tictactoeblock");
+                }
+                block.setAttribute("id", index);
+                block.addEventListener("click", tictactoe_click);
+                document.getElementById("contents").appendChild(block);
+                document.getElementById("newgame").addEventListener("click",resetGame);
+                setStartingPlayer();
+            }
+
+            // Set the start player after game is reset
+            function setStartingPlayer() 
+            {
+                document.getElementById("startSymbol").innerText = "Starting Player: X";
+            }
+            
+            // Functionality when div of the tic tac toe is clicked
+            function tictactoe_click() 
+            {
+                let selectedId = parseInt(this.id);
+                let selectedObj = tictactoeObj.find(obj => obj.id === selectedId);
+                if (selectedObj.value === "") 
+                {
+                    this.innerText = symbol;
+                    selectedObj.value = symbol;
+                    
+
+                    isWinner = row_check(selectedId);
+                    
+                    if (!isWinner) 
+                    {
+                        isWinner = column_check(selectedId);
+                        if (!isWinner) 
+                        {
+                            isWinner = across_check(selectedId);
+                        }
+                    }
+                    // If there is a winner
+                    if (isWinner)
+                    {
+                        for (let i = 0; i < 9; i++)
+                        {
+                            document.getElementById(i).removeEventListener("click", 
+                            tictactoe_click);
+                        }
+                        document.getElementById("winblock").classList.remove("hidden");
+                        document.getElementById("winner").innerText = `Player ${symbol} wins the game!!!`;
+                        document.getElementById("startSymbol").classList.add("hidden");
+                    }
+                    // When there is no winner 
+                    if (!isWinner && clickCounter == 8)
+                    {
+                        document.getElementById("winblock").classList.remove("hidden");
+                        document.getElementById("winner").innerText = `No player wins the game!!!`;
+                        document.getElementById("startSymbol").classList.add("hidden");
+                        document.getElementById(i).removeEventListener("click", tictactoe_click);
+                    }
+
+                    // Swapping the next player symbol between clicks
+                    if (symbol === "X") 
+                    {
+                        symbol = "O";
+                    } 
+                    else if (symbol === "O") 
+                    {
+                        symbol = "X";
+                    }
+                    document.getElementById("startSymbol").innerText = `Next Player: ${symbol}`;
+                    clickCounter++;
+                }
+            }
+
+            // Check if any row has the same symbol
+            function row_check(selectedId) 
+            {
+                let isRowWinner = false;
+                let selectedRows = [];
+                if (selectedId < 3) 
+                {
+                    selectedRows = tictactoeObj.filter(obj => obj.id < 3);
+                } 
+                else if (selectedId >= 3 && selectedId < 6) 
+                {
+                    selectedRows = tictactoeObj.filter(obj => obj.id >= 3 && obj.id < 6);
+                } 
+                else 
+                {
+                    selectedRows = tictactoeObj.filter(obj => obj.id >= 6);
+                }
+                isRowWinner = selectedRows.every(win => win.value === symbol);
+                console.log(isRowWinner);
+                return isRowWinner;
+            }
+
+            // Check if any column has the same symbol
+            function column_check(selectedId) 
+            {
+                let isColumnWinner = false;
+                let columnValues = [];
+                let counter = 3;
+                columnValues.push(tictactoeObj.find(obj => obj.id === selectedId).value);
+                if (selectedId < 3) 
+                {
+                    let startingid = selectedId + counter;
+                    for (let i = 0; i <= 1; i++) 
+                    {
+                        let val = tictactoeObj.find(obj => obj.id === startingid).value;
+                        columnValues.push(val);
+                        startingid += counter;
+                    }
+                }
+                if (selectedId >= 3 && selectedId < 6) 
+                {
+                    let upperVal = tictactoeObj.find(obj => obj.id === selectedId - 3).value;
+                    columnValues.push(upperVal);
+                    let bottomVal = tictactoeObj.find(obj => obj.id === selectedId + counter).value;
+                    columnValues.push(bottomVal);
+                }
+                if (selectedId >= 6) 
+                {
+                    let startingid = selectedId - counter;
+                    for (let i = 0; i <= 1; i++) 
+                    {
+                        let val = tictactoeObj.find(obj => obj.id === startingid).value;
+                        columnValues.push(val);
+                        startingid -= counter;
+                    }
+                }
+                isColumnWinner = columnValues.every(win => win === symbol);
+                console.log(isColumnWinner);
+                return isColumnWinner;
+            }
+
+            // Check if its the same symbol diagonally
+            function across_check(selectedId) 
+            {
+                let acrossValues = [];
+                let isAcrossWinner = false;
+
+                for (let i = 0; i <= 8; i += 4) 
+                {
+                    let objValue = tictactoeObj.find(obj => obj.id === i).value;
+                    acrossValues.push(objValue);
+                }
+                isAcrossWinner = acrossValues.every(win => win === symbol);
+                if (!isAcrossWinner) 
+                {
+                    acrossValues = [];
+                    for (i = 2; i <= 6; i += 2) 
+                    {
+                        let objValue = tictactoeObj.find(obj => obj.id === i).value;
+                        acrossValues.push(objValue);
+                    }
+                    isAcrossWinner = acrossValues.every(win => win === symbol);
+                }
+                console.log(isAcrossWinner);
+                return isAcrossWinner;
+            }
+
+            // Resetting the game
+            function resetGame() 
+            {
+                let tictactoeEle = document.querySelectorAll(".tictactoeblock");
+                tictactoeEle.forEach(ele => ele.innerText = "");
+                tictactoeEle.forEach(ele => ele.addEventListener("click", tictactoe_click));
+                tictactoeObj.map(obj=>obj.value = "");
+                symbol = "X";
+                document.getElementById("winblock").classList.add("hidden");                
+                document.getElementById("startSymbol").classList.remove("hidden");
+                isWinner = false;
+                clickCounter = 0;
+                setStartingPlayer();                
+            }            
+        });
+    </script>
+</body>
+
+</html>
